@@ -366,7 +366,7 @@ const INIT_CONFEITARIA = {
     { id: 1, ingredientId: 2, qty: 10, totalCost: 140, date: "2024-03-10", supplier: "Produção própria", notes: "Produção semanal" },
     { id: 2, ingredientId: 1, qty: 3, totalCost: 84, date: "2024-03-12", supplier: "Produção própria", notes: "" },
   ],
-  settings: { name: "Meu Negócio", owner: "Maria Silva", email: "contato@meunegocio.com", phone: "(11) 98765-0000", address: "Rua das Flores, 200 - SP", markup: 2.5, currency: "BRL" },
+  settings: { name: "Empresa", owner: "Maria Silva", email: "contato@meunegocio.com", phone: "(11) 98765-0000", address: "Rua das Flores, 200 - SP", markup: 2.5, currency: "BRL" },
 };
 
 const INIT_PLATFORM = {
@@ -525,10 +525,34 @@ function LoginPage({ onLogin }) {
       <style>{STYLES}</style>
       <div className="login-box">
         <div className="login-top">
-          <div className="login-logo">🏢</div>
-          <div className="login-title">FacilGestão</div>
-          <div className="login-sub">Gestão simples e inteligente para o seu negócio</div>
-        </div>
+         <div
+  className="login-logo"
+  style={{
+    background: "linear-gradient(135deg,#8B1E3F,#D4AF37)",
+    color: "#fff",
+    fontWeight: 800,
+    fontSize: 24,
+    borderRadius: 16,
+    width: 72,
+    height: 72,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0 auto 16px",
+    boxShadow: "0 10px 30px rgba(0,0,0,.25)"
+  }}
+>
+  FG
+</div>
+
+<div className="login-title">
+  FacilGestão ERP
+</div>
+
+<div className="login-sub">
+  Sistema Integrado de Gestão Empresarial
+</div>
+  </div>
         <div className="login-body">
           <p style={{ fontSize: 13, fontWeight: 600, color: "var(--choc)", marginBottom: 10, fontFamily: "'Poppins',sans-serif" }}>Como você vai entrar?</p>
           <div className="role-selector">
@@ -539,7 +563,7 @@ function LoginPage({ onLogin }) {
             </div>
             <div className={`role-btn ${role === "confectionery_owner" ? "selected" : ""}`} onClick={() => setRole("confectionery_owner")} role="button" tabIndex={0} aria-pressed={role === "confectionery_owner"} onKeyDown={e => e.key === "Enter" && setRole("confectionery_owner")}>
               <div className="role-btn-icon">🍰</div>
-              <div className="role-btn-label">Meu Negócio</div>
+              <div className="role-btn-label">Empresa</div>
               <div className="role-btn-desc">Gestão do seu negócio</div>
             </div>
           </div>
@@ -555,7 +579,7 @@ function LoginPage({ onLogin }) {
             <input id="login-pass" className="input" type="password" placeholder="••••••••" value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === "Enter" && submit()} />
           </div>
           <button className="btn btn-primary btn-full" onClick={submit} disabled={loading} style={{ padding: "11px" }}>
-            {loading ? "Entrando..." : role === "platform_admin" ? "🛡️ Entrar como Administrador" : "🏪 Entrar como Meu Negócio"}
+            {loading ? "Entrando..." : role === "platform_admin" ? "🛡️ Entrar como Administrador" : "🏪 Entrar como Empresa"}
           </button>
           <div style={{ marginTop: 10, textAlign: "center" }}>
             <span style={{ fontSize: 12, color: "var(--txt-m)", textDecoration: "underline", cursor: "pointer" }}>Esqueci minha senha</span>
@@ -814,6 +838,7 @@ function PlatformConfeitarias() {
       </Modal>
 
       <Confirm open={!!confirm} onClose={() => setConfirm(null)} onOk={() => del(confirm)} />
+      
     </div>
   );
 }
@@ -1015,10 +1040,38 @@ function PlatformAdmin({ user, onLogout }) {
   return (
     <div className="layout">
       <aside className="sidebar">
-        <div className="sidebar-brand">
-          <div className="sidebar-brand-name">🍫 FacilGestão</div>
-          <div className="sidebar-brand-sub">Plataforma SaaS</div>
-        </div>
+       <div className="sidebar-brand">
+  <div
+  style={{
+    width: 54,
+    height: 54,
+    borderRadius: 14,
+    background: "linear-gradient(135deg, #8B1E3F 0%, #D4AF37 100%)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#FFFFFF",
+    fontWeight: 800,
+    fontSize: 22,
+    fontFamily: "'Poppins', sans-serif",
+    letterSpacing: 1,
+    boxShadow: "0 8px 24px rgba(0,0,0,.22)",
+    marginBottom: 10
+  }}
+>
+  FG
+</div>
+
+<div className="sidebar-brand-name">
+  FacilGestão
+</div>
+
+<div className="sidebar-brand-sub">
+  Sistema de Gestão Empresarial
+</div>
+  
+    FG
+</div>
         <div style={{ padding: "8px 16px 4px", marginTop: 4 }}>
           <span className="platform-badge" style={{ fontSize: 9 }}><Ic n="shield" s={9} /> ADMIN DA PLATAFORMA</span>
         </div>
@@ -1872,6 +1925,11 @@ const deleteProduct = (id) => {
         </div>
         <div className="form-group"><label>Observações</label><input className="input" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Nota fiscal, lote, etc." /></div>
       </Modal>
+      <Confirm
+  open={!!confirmProduct}
+  onClose={() => setConfirmProduct(null)}
+  onOk={() => deleteProduct(confirmProduct)}
+/>
     </div>
   );
 }
@@ -2747,7 +2805,7 @@ function ConfApp({ user, onLogout }) {
         <div className="sidebar-user">
           <div className="sidebar-user-inner" onClick={() => setPage("settings")}>
             <div className="avatar avatar-lg">{user.name[0]}</div>
-            <div><div className="user-name">{user.name}</div><div className="user-role">Meu Negócio</div></div>
+            <div><div className="user-name">{user.name}</div><div className="user-role">Empresa</div></div>
           </div>
         </div>
       </aside>
