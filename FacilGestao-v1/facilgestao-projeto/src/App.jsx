@@ -1544,7 +1544,21 @@ function ConfStock() {
   const { conf, setConf, toast } = useStore();
   const [tab, setTab] = useState("estoque");
   const [modal, setModal] = useState(false);
+  const [productModal, setProductModal] = useState(false);
+const [editingProduct, setEditingProduct] = useState(null);
+const [confirmProduct, setConfirmProduct] = useState(null);
   const [form, setForm] = useState({ ingredientId: "", qty: "", totalCost: "", date: today(), supplier: "", notes: "" });
+  const [productForm, setProductForm] = useState({
+  name: "",
+  category: "",
+  unit: "un",
+  costUnit: "",
+  precoVenda: "",
+  stock: "",
+  minStock: "",
+  obs: ""
+});
+  
   const [errors, setErrors] = useState({});
 
   const lowStock = conf.ingredients.filter(i => i.stock <= i.minStock);
@@ -1556,6 +1570,83 @@ function ConfStock() {
     if (!form.qty || parseFloat(form.qty) <= 0) e.qty = "Quantidade inválida";
     setErrors(e); return Object.keys(e).length === 0;
   };
+  const openNewProduct = () => {
+  setEditingProduct(null);
+  setProductForm({
+    name: "",
+    category: "",
+    unit: "un",
+    costUnit: "",
+    precoVenda: "",
+    stock: "",
+    minStock: "",
+    obs: ""
+  });
+  setErrors({});
+  setProductModal(true);
+};
+
+const openEditProduct = (product) => {
+  setEditingProduct(product);
+  setProductForm({
+    name: product.name || "",
+    category: product.category || "",
+    unit: product.unit || "un",
+    costUnit: product.costUnit || "",
+    precoVenda: product.precoVenda || "",
+    stock: product.stock || "",
+    minStock: product.minStock || "",
+    obs: product.obs || ""
+  });
+  setErrors({});
+  setProductModal(true);
+};
+
+const saveProduct = () => {
+  const e = {};
+  if (!productForm.name.trim()) e.name = "Nome obrigatório";
+  if (!productForm.category.trim()) e.category = "Categoria obrigatória";
+
+  setErrors(e);
+  if (Object.keys(e).length > 0) return;
+
+  const productData = {
+    ...productForm,
+    costUnit: parseFloat(productForm.costUnit) || 0,
+    precoVenda: parseFloat(productForm.precoVenda) || 0,
+    stock: parseFloat(productForm.stock) || 0,
+    minStock: parseFloat(productForm.minStock) || 0,
+  };
+
+
+  if (editingProduct) {
+    setConf(c => ({
+      ...c,
+      ingredients: c.ingredients.map(i =>
+        i.id === editingProduct.id ? { ...i, ...productData } : i
+      )
+    }));
+    toast("Produto atualizado!", "s");
+  } else {
+    const id = nextId(conf.ingredients);
+    setConf(c => ({
+      ...c,
+      ingredients: [...c.ingredients, { id, ...productData }]
+    }));
+    toast("Produto cadastrado!", "s");
+  }
+
+  setProductModal(false);
+};
+
+const deleteProduct = (id) => {
+  setConf(c => ({
+    ...c,
+    ingredients: c.ingredients.filter(i => i.id !== id)
+  }));
+  toast("Produto removido.", "i");
+  setConfirmProduct(null);
+};
 
   const savePurchase = () => {
     if (!validate()) return;
@@ -1575,8 +1666,20 @@ function ConfStock() {
   return (
     <div>
       <div className="page-header">
-        <div><h1 className="page-title">Estoque de Produtos</h1><p className="page-desc">Produtos finais vendáveis · Entradas manuais atualizam o estoque</p></div>
-        <button className="btn btn-primary" onClick={() => { setErrors({}); setModal(true); }}><Ic n="buy" s={14} /> Registrar Entrada</button>
+      <div>
+  <h1 className="page-title">Estoque de Produtos</h1>
+  <p className="page-desc">Produtos finais vendáveis · Entradas manuais atualizam o estoque</p>
+</div>
+
+<div style={{ display: "flex", gap: 8 }}>
+  <button className="btn btn-secondary" onClick={openNewProduct}>
+    <Ic n="plus" s={14} /> Novo Produto
+  </button>
+
+  <button className="btn btn-primary" onClick={() => { setErrors({}); setModal(true); }}>
+    <Ic n="buy" s={14} /> Registrar Entrada
+  </button>
+</div>
       </div>
 
       <div className="g g3 mb-4">
@@ -1602,7 +1705,19 @@ function ConfStock() {
         <div className="card">
           <div className="table-wrap">
             <table>
-              <thead><tr><th>Produto</th><th>Categoria</th><th>Custo/Un.</th><th>Preço Venda</th><th>Estoque</th><th>Mínimo</th><th>Cobertura</th><th>Status</th></tr></thead>
+<thead>
+  <tr>
+    <th>Produto</th>
+    <th>Categoria</th>
+    <th>Custo/Un.</th>
+    <th>Preço Venda</th>
+    <th>Estoque</th>
+    <th>Mínimo</th>
+    <th>Cobertura</th>
+    <th>Status</th>
+    <th>Ações</th>
+  </tr>
+</thead>
               <tbody>
                 {conf.ingredients.map(ing => {
                   const st = STOCK_STATUS(ing);
@@ -1611,6 +1726,7 @@ function ConfStock() {
                     <tr key={ing.id}>
                       <td><div style={{ fontWeight: 600 }}>{ing.name}</div>{ing.obs && <div style={{ fontSize: 11, color: "var(--txt-m)" }}>{ing.obs}</div>}</td>
                       <td><span className="badge badge-brown">{ing.category}</span></td>
+                      
                       <td>{R(ing.costUnit)}/{ing.unit}</td>
                       <td style={{ fontWeight: 600, color: "var(--verde)" }}>{R(ing.precoVenda || 0)}/{ing.unit}</td>
                       <td><strong>{N(ing.stock, 0)}</strong> {ing.unit}</td>
@@ -1622,6 +1738,26 @@ function ConfStock() {
                         </div>
                       </td>
                       <td><span className={`badge ${st.cls}`}>{st.label}</span></td>
+                      <td>
+  <div className="td-actions">
+    <button
+      className="btn btn-ghost btn-icon btn-sm"
+      onClick={() => openEditProduct(ing)}
+      title="Editar"
+    >
+      <Ic n="edit" s={14} />
+    </button>
+
+    <button
+      className="btn btn-ghost btn-icon btn-sm"
+      onClick={() => setConfirmProduct(ing.id)}
+      style={{ color: "#E74C3C" }}
+      title="Excluir"
+    >
+      <Ic n="trash" s={14} />
+    </button>
+  </div>
+</td>
                     </tr>
                   );
                 })}
@@ -1658,8 +1794,59 @@ function ConfStock() {
           }
         </div>
       )}
+<Modal open={productModal} onClose={() => setProductModal(false)} title={editingProduct ? "Editar Produto" : "Novo Produto"}
+  footer={<><button className="btn btn-secondary" onClick={() => setProductModal(false)}>Cancelar</button><button className="btn btn-primary" onClick={saveProduct}>Salvar Produto</button></>}>
+  
+  <div className="form-group">
+    <label>Nome *</label>
+    <input className={`input ${errors.name ? "error" : ""}`} value={productForm.name} onChange={e => setProductForm(f => ({ ...f, name: e.target.value }))} />
+    {errors.name && <div className="form-error">{errors.name}</div>}
+  </div>
 
+  <div className="form-row">
+    <div className="form-group">
+      <label>Categoria *</label>
+      <input className={`input ${errors.category ? "error" : ""}`} value={productForm.category} onChange={e => setProductForm(f => ({ ...f, category: e.target.value }))} />
+      {errors.category && <div className="form-error">{errors.category}</div>}
+    </div>
+
+    <div className="form-group">
+      <label>Unidade</label>
+      <input className="input" value={productForm.unit} onChange={e => setProductForm(f => ({ ...f, unit: e.target.value }))} />
+    </div>
+  </div>
+
+  <div className="form-row">
+    <div className="form-group">
+      <label>Custo unitário</label>
+      <input className="input" type="number" step="0.01" value={productForm.costUnit} onChange={e => setProductForm(f => ({ ...f, costUnit: e.target.value }))} />
+    </div>
+
+    <div className="form-group">
+      <label>Preço de venda</label>
+      <input className="input" type="number" step="0.01" value={productForm.precoVenda} onChange={e => setProductForm(f => ({ ...f, precoVenda: e.target.value }))} />
+    </div>
+  </div>
+
+  <div className="form-row">
+    <div className="form-group">
+      <label>Estoque atual</label>
+      <input className="input" type="number" step="1" value={productForm.stock} onChange={e => setProductForm(f => ({ ...f, stock: e.target.value }))} />
+    </div>
+
+    <div className="form-group">
+      <label>Estoque mínimo</label>
+      <input className="input" type="number" step="1" value={productForm.minStock} onChange={e => setProductForm(f => ({ ...f, minStock: e.target.value }))} />
+    </div>
+  </div>
+
+  <div className="form-group">
+    <label>Observações</label>
+    <textarea className="textarea" style={{ minHeight: 60 }} value={productForm.obs} onChange={e => setProductForm(f => ({ ...f, obs: e.target.value }))} />
+  </div>
+</Modal>
       <Modal open={modal} onClose={() => setModal(false)} title="Registrar Entrada de Produto"
+
         footer={<><button className="btn btn-secondary" onClick={() => setModal(false)}>Cancelar</button><button className="btn btn-primary" onClick={savePurchase}>Confirmar Entrada</button></>}>
         <div className="alert alert-i"><Ic n="info" s={14} />O estoque do produto será <strong>aumentado automaticamente</strong>. Se informar o custo total, o custo unitário será recalculado.</div>
         <div className="form-group"><label>Ingrediente *</label>
