@@ -1,5 +1,4 @@
 import { useState, createContext, useContext, useCallback, useMemo } from "react";
-
 /* ═══════════════════════════════════════════════════════════════════════════
    STYLES
 ═══════════════════════════════════════════════════════════════════════════ */
@@ -347,14 +346,14 @@ const INIT_CONFEITARIA = {
   ],
   recipes: [],
  orders: [
-  { id: 1, clientId: 2, recipeId: 1, qty: 4, deliveryDate: dateDaysAgo(0), status: "entregue", price: 180, notes: "Venda de hoje", createdAt: dateDaysAgo(0) },
-  { id: 2, clientId: 1, recipeId: 1, qty: 2, deliveryDate: dateDaysAgo(1), status: "entregue", price: 90, notes: "Aniversário - escrever parabéns", createdAt: dateDaysAgo(1) },
-  { id: 3, clientId: 3, recipeId: 3, qty: 2, deliveryDate: dateDaysAgo(2), status: "pronto", price: 110, notes: "", createdAt: dateDaysAgo(2) },
-  { id: 4, clientId: 2, recipeId: 2, qty: 8, deliveryDate: dateDaysAgo(5), status: "entregue", price: 360, notes: "", createdAt: dateDaysAgo(5) },
-  { id: 5, clientId: 4, recipeId: 4, qty: 3, deliveryDate: dateDaysAgo(8), status: "pendente", price: 114, notes: "Cortar em quadradinhos", createdAt: dateDaysAgo(8) },
-  { id: 6, clientId: 1, recipeId: 5, qty: 1, deliveryDate: dateDaysAgo(12), status: "entregue", price: 135, notes: "Pedido corporativo", createdAt: dateDaysAgo(12) },
-  { id: 7, clientId: 3, recipeId: 2, qty: 3, deliveryDate: dateDaysAgo(18), status: "entregue", price: 135, notes: "", createdAt: dateDaysAgo(18) },
-  { id: 8, clientId: 4, recipeId: 3, qty: 1, deliveryDate: dateDaysAgo(25), status: "entregue", price: 55, notes: "", createdAt: dateDaysAgo(25) },
+  { id: 1, clientId: 2, productId: 1, qty: 4, deliveryDate: dateDaysAgo(0), status: "entregue", price: 180, notes: "Venda de hoje", createdAt: dateDaysAgo(0) },
+  { id: 2, clientId: 1, productId: 1, qty: 2, deliveryDate: dateDaysAgo(1), status: "entregue", price: 90, notes: "Aniversário - escrever parabéns", createdAt: dateDaysAgo(1) },
+  { id: 3, clientId: 3, productId: 3, qty: 2, deliveryDate: dateDaysAgo(2), status: "pronto", price: 110, notes: "", createdAt: dateDaysAgo(2) },
+  { id: 4, clientId: 2, productId: 2, qty: 8, deliveryDate: dateDaysAgo(5), status: "entregue", price: 360, notes: "", createdAt: dateDaysAgo(5) },
+  { id: 5, clientId: 4, productId: 4, qty: 3, deliveryDate: dateDaysAgo(8), status: "pendente", price: 114, notes: "Cortar em quadradinhos", createdAt: dateDaysAgo(8) },
+  { id: 6, clientId: 1, productId: 5, qty: 1, deliveryDate: dateDaysAgo(12), status: "entregue", price: 135, notes: "Pedido corporativo", createdAt: dateDaysAgo(12) },
+  { id: 7, clientId: 3, productId: 2, qty: 3, deliveryDate: dateDaysAgo(18), status: "entregue", price: 135, notes: "", createdAt: dateDaysAgo(18) },
+  { id: 8, clientId: 4, productId: 3, qty: 1, deliveryDate: dateDaysAgo(25), status: "entregue", price: 55, notes: "", createdAt: dateDaysAgo(25) },
 ],
   clients: [
     { id: 1, name: "Maria Fernanda Silva", phone: "(11) 99876-5432", email: "maria@email.com", address: "Rua das Flores, 123 - SP", notes: "" },
@@ -516,7 +515,7 @@ function LoginPage({ onLogin }) {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      onLogin({ role, email, name: role === "platform_admin" ? "Admin FacilGestão" : "Gestor do Negócio" });
+      onLogin({ role, email, name: role === "platform_admin" ? "Admin FacilGestão" : "Thiago" });
     }, 700);
   };
 
@@ -564,7 +563,7 @@ function LoginPage({ onLogin }) {
             <div className={`role-btn ${role === "confectionery_owner" ? "selected" : ""}`} onClick={() => setRole("confectionery_owner")} role="button" tabIndex={0} aria-pressed={role === "confectionery_owner"} onKeyDown={e => e.key === "Enter" && setRole("confectionery_owner")}>
               <div className="role-btn-icon">🍰</div>
               <div className="role-btn-label">Empresa</div>
-              <div className="role-btn-desc">Gestão do seu negócio</div>
+              <div className="role-btn-desc">Gestão empresarial</div>
             </div>
           </div>
 
@@ -1117,7 +1116,7 @@ function ConfDash({ setPage }) {
   const validOrders = orders.filter(o => o.status !== "cancelado");
   const revenue = validOrders.reduce((s, o) => s + o.price, 0);
   const totalCost = validOrders.reduce((s, o) => {
-    const p = ingredients.find(x => x.id === o.recipeId);
+    const p = ingredients.find(x => x.id === o.productId);
     return s + (p ? p.costUnit * o.qty : 0);
   }, 0);
   const profit = revenue - totalCost;
@@ -1128,8 +1127,8 @@ function ConfDash({ setPage }) {
 
   const topProducts = ingredients.map(p => ({
     ...p,
-    qty: validOrders.filter(o => o.recipeId === p.id).reduce((s, o) => s + o.qty, 0),
-    rev: validOrders.filter(o => o.recipeId === p.id).reduce((s, o) => s + o.price, 0),
+    qty: validOrders.filter(o => o.productId === p.id).reduce((s, o) => s + o.qty, 0),
+    rev: validOrders.filter(o => o.productId === p.id).reduce((s, o) => s + o.price, 0),
   })).filter(p => p.qty > 0).sort((a, b) => b.qty - a.qty).slice(0, 4);
 
   return (
@@ -1137,7 +1136,7 @@ function ConfDash({ setPage }) {
       <div className="page-header">
         <div>
           <h1 className="page-title">Dashboard</h1>
-          <p className="page-desc">Bem-vindo! Aqui está o resumo do seu negócio.</p>
+          <p className="page-desc">Bem-vindo! Aqui está o resumo da.</p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           {lateOrders > 0 && <div className="alert alert-e" style={{ margin: 0, padding: "8px 12px" }}><Ic n="alert" s={14} /> {lateOrders} pedido(s) atrasado(s)</div>}
@@ -1230,7 +1229,7 @@ function ConfDash({ setPage }) {
             <tbody>
               {[...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5).map(ord => {
                 const client = conf.clients.find(c => c.id === ord.clientId);
-                const prod = ingredients.find(p => p.id === ord.recipeId);
+                const prod = ingredients.find(p => p.id === ord.productId);
                 const st = ORDER_STATUS[ord.status];
                 return (
                   <tr key={ord.id}>
@@ -1388,18 +1387,18 @@ function ConfOrders() {
   const [editing, setEditing] = useState(null);
   const [confirm, setConfirm] = useState(null);
   const [errors, setErrors] = useState({});
-  const [form, setForm] = useState({ clientId: "", recipeId: "", qty: "1", deliveryDate: "", status: "pendente", price: "", notes: "" });
+  const [form, setForm] = useState({ clientId: "", productId: "", qty: "1", deliveryDate: "", status: "pendente", price: "", notes: "" });
 
   const validate = () => {
     const e = {};
     if (!form.clientId) e.clientId = "Selecione o cliente";
-    if (!form.recipeId) e.recipeId = "Selecione o produto";
+    if (!form.productId) e.productId = "Selecione o produto";
     if (!form.price || parseFloat(form.price) <= 0) e.price = "Informe o preço de venda";
     if (!form.qty || parseFloat(form.qty) <= 0) e.qty = "Quantidade inválida";
     setErrors(e); return Object.keys(e).length === 0;
   };
 
-  const getSelectedProduct = () => conf.ingredients.find(p => p.id === parseInt(form.recipeId));
+  const getSelectedProduct = () => conf.ingredients.find(p => p.id === parseInt(form.productId));
   const getOrderCost = () => {
     const p = getSelectedProduct();
     return p ? p.costUnit * (parseFloat(form.qty) || 0) : 0;
@@ -1410,21 +1409,21 @@ function ConfOrders() {
   };
   const getEstimatedProfit = () => (parseFloat(form.price) || 0) - getOrderCost();
 
-  const openNew = () => { setEditing(null); setForm({ clientId: "", recipeId: "", qty: "1", deliveryDate: "", status: "pendente", price: "", notes: "" }); setErrors({}); setModal(true); };
-  const openEdit = o => { setEditing(o); setForm({ clientId: String(o.clientId), recipeId: String(o.recipeId), qty: String(o.qty), deliveryDate: o.deliveryDate, status: o.status, price: String(o.price), notes: o.notes }); setErrors({}); setModal(true); };
+  const openNew = () => { setEditing(null); setForm({ clientId: "", productId: "", qty: "1", deliveryDate: "", status: "pendente", price: "", notes: "" }); setErrors({}); setModal(true); };
+  const openEdit = o => { setEditing(o); setForm({ clientId: String(o.clientId), productId: String(o.productId), qty: String(o.qty), deliveryDate: o.deliveryDate, status: o.status, price: String(o.price), notes: o.notes }); setErrors({}); setModal(true); };
 
   const save = () => {
     if (!validate()) return;
-    const item = { ...form, clientId: parseInt(form.clientId), recipeId: parseInt(form.recipeId), qty: parseFloat(form.qty), price: parseFloat(form.price) };
+    const item = { ...form, clientId: parseInt(form.clientId), productId: parseInt(form.productId), qty: parseFloat(form.qty), price: parseFloat(form.price) };
     if (editing) {
       // Restore old stock, then deduct new
-      let ings = restoreStockForOrder(editing.recipeId, editing.qty, conf.recipes, conf.ingredients);
-      ings = deductStockForOrder(item.recipeId, item.qty, conf.recipes, ings);
+      let ings = restoreStockForOrder(editing.productId, editing.qty, null, conf.ingredients);
+      ings = deductStockForOrder(item.productId, item.qty, null, ings);
       setConf(c => ({ ...c, orders: c.orders.map(o => o.id === editing.id ? { ...item, id: editing.id, createdAt: o.createdAt } : o), ingredients: ings }));
       toast("Pedido atualizado! Estoque recalculado.", "s");
     } else {
       const id = nextId(conf.orders);
-      const ings = deductStockForOrder(item.recipeId, item.qty, conf.recipes, conf.ingredients);
+      const ings = deductStockForOrder(item.productId, item.qty, null, conf.ingredients);
       setConf(c => ({ ...c, orders: [...c.orders, { id, ...item, createdAt: today() }], ingredients: ings }));
       toast("Pedido criado! Estoque atualizado automaticamente.", "s");
     }
@@ -1434,7 +1433,7 @@ function ConfOrders() {
   const del = id => {
     const ord = conf.orders.find(o => o.id === id);
     if (ord) {
-      const ings = restoreStockForOrder(ord.recipeId, ord.qty, conf.recipes, conf.ingredients);
+      const ings = restoreStockForOrder(ord.productId, ord.qty, null, conf.ingredients);
       setConf(c => ({ ...c, orders: c.orders.filter(o => o.id !== id), ingredients: ings }));
       toast("Pedido removido. Estoque restaurado.", "i");
     }
@@ -1449,12 +1448,12 @@ function ConfOrders() {
     if (filterStatus !== "todos" && o.status !== filterStatus) return false;
     if (search) {
       const client = conf.clients.find(c => c.id === o.clientId);
-      const prod = conf.ingredients.find(p => p.id === o.recipeId);
+      const prod = conf.ingredients.find(p => p.id === o.productId);
       const term = search.toLowerCase();
       if (!client?.name.toLowerCase().includes(term) && !prod?.name.toLowerCase().includes(term) && !String(o.id).includes(term)) return false;
     }
     return true;
-  }), [conf.orders, conf.clients, conf.recipes, filterStatus, search]);
+  }), [conf.orders, conf.clients, null, filterStatus, search]);
 
   return (
     <div>
@@ -1477,13 +1476,13 @@ function ConfOrders() {
       <div className="card">
         <div className="table-wrap">
           {filtered.length === 0
-            ? <EmptyState icon="order" title="Nenhum pedido encontrado" desc={search || filterStatus !== "todos" ? "Tente ajustar os filtros." : "Crie o primeiro pedido do seu negócio."} action={!search && filterStatus === "todos" ? "+ Novo Pedido" : null} onAction={openNew} />
+            ? <EmptyState icon="order" title="Nenhum pedido encontrado" desc={search || filterStatus !== "todos" ? "Tente ajustar os filtros." : "Crie o primeiro pedido da."} action={!search && filterStatus === "todos" ? "+ Novo Pedido" : null} onAction={openNew} />
             : <table>
               <thead><tr><th>#</th><th>Cliente</th><th>Produto</th><th>Qtd</th><th>Entrega</th><th>Preço</th><th>Custo</th><th>Lucro</th><th>Status</th><th>Ações</th></tr></thead>
               <tbody>
                 {filtered.map(ord => {
                   const client = conf.clients.find(c => c.id === ord.clientId);
-                  const prod = conf.ingredients.find(p => p.id === ord.recipeId);
+                  const prod = conf.ingredients.find(p => p.id === ord.productId);
                   const cost = prod ? prod.costUnit * ord.qty : 0;
                   const profit = ord.price - cost;
                   const st = ORDER_STATUS[ord.status];
@@ -1538,11 +1537,14 @@ function ConfOrders() {
             {errors.clientId && <div className="form-error">{errors.clientId}</div>}
           </div>
           <div className="form-group"><label>Produto *</label>
-            <select className={`select ${errors.recipeId ? "error" : ""}`} value={form.recipeId} onChange={e => setForm(f => ({ ...f, recipeId: e.target.value }))}>
+            <select className={`select ${errors.productId ? "error" : ""}`} value={form.productId} onChange={e => setForm(f => ({ ...f, productId: e.target.value }))}>
               <option value="">Selecionar produto...</option>
-              {conf.recipes.map(r => <option key={r.id} value={r.id}>{r.emoji} {r.name}</option>)}
-            </select>
-            {errors.recipeId && <div className="form-error">{errors.recipeId}</div>}
+{conf.ingredients.map(p =>
+  <option key={p.id} value={p.id}>
+    {p.name}
+  </option>
+)}            </select>
+            {errors.productId && <div className="form-error">{errors.productId}</div>}
           </div>
         </div>
 
@@ -1556,7 +1558,7 @@ function ConfOrders() {
           </div>
         </div>
 
-        {form.recipeId && parseFloat(form.qty) > 0 && (
+        {form.productId && parseFloat(form.qty) > 0 && (
           <div className="info-box">
             <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", color: "var(--txt-m)", marginBottom: 8 }}>💡 Análise Automática do Pedido</div>
             <div className="info-row"><span className="lbl">Custo de produção</span><span className="val">{R(getOrderCost())}</span></div>
@@ -1570,7 +1572,7 @@ function ConfOrders() {
           <div className="form-group"><label>Preço de Venda (R$) *</label>
             <input className={`input ${errors.price ? "error" : ""}`} type="number" step="0.01" min="0" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} placeholder="0,00" />
             {errors.price && <div className="form-error">{errors.price}</div>}
-            {form.recipeId && form.qty && !form.price && (
+            {form.productId && form.qty && !form.price && (
               <div className="form-hint" style={{ cursor: "pointer", color: "var(--rosa)", textDecoration: "underline" }} onClick={() => setForm(f => ({ ...f, price: getSuggestedPrice().toFixed(2) }))}>
                 Usar preço de tabela: {R(getSuggestedPrice())}
               </div>
@@ -1905,8 +1907,11 @@ const deleteProduct = (id) => {
         <div className="form-group"><label>Ingrediente *</label>
           <select className={`select ${errors.ingredientId ? "error" : ""}`} value={form.ingredientId} onChange={e => setForm(f => ({ ...f, ingredientId: e.target.value }))}>  
             <option value="">Selecionar produto...</option>
-            {conf.ingredients.map(i => <option key={i.id} value={i.id}>{i.name} — estoque atual: {N(i.stock, 0)} {i.unit}</option>)}
-          </select>
+{conf.ingredients.map(p => (
+  <option key={p.id} value={p.id}>
+    {p.name} — estoque: {N(p.stock, 0)} {p.unit}
+  </option>
+))}          </select>
           {errors.ingredientId && <div className="form-error">{errors.ingredientId}</div>}  
         </div>
         <div className="form-row">
@@ -2041,7 +2046,7 @@ function ConfClients() {
               <thead><tr><th>#</th><th>Produto</th><th>Qtd</th><th>Entrega</th><th>Valor</th><th>Status</th></tr></thead>
               <tbody>
                 {clientOrders(viewModal.id).map(ord => {
-                  const prod = conf.ingredients.find(x => x.id === ord.recipeId);
+                  const prod = conf.ingredients.find(x => x.id === ord.productId);
                   const st = ORDER_STATUS[ord.status];
                   return <tr key={ord.id}>
                     <td style={{ color: "var(--rosa)", fontWeight: 700 }}>#{ord.id}</td>
@@ -2209,14 +2214,14 @@ function ConfFinancial() {
 
   const revenue = useMemo(() => valid.reduce((s, o) => s + o.price, 0), [valid]);
   const costs   = useMemo(() => valid.reduce((s, o) => {
-    const p = ingredients.find(x => x.id === o.recipeId);
+    const p = ingredients.find(x => x.id === o.productId);
     return s + (p ? p.costUnit * o.qty : 0);
   }, 0), [valid, ingredients]);
   const profit = revenue - costs;
   const margin = revenue > 0 ? (profit / revenue * 100).toFixed(1) : 0;
 
 const byProduct = useMemo(() => ingredients.map(p => {
-const pOrds = valid.filter(o => Number(o.productId || o.recipeId) === Number(p.id));
+const pOrds = valid.filter(o => Number(o.productId || o.productId) === Number(p.id));
   const rev = pOrds.reduce((s, o) => s + Number(o.price || 0), 0);
   const cost = pOrds.reduce((s, o) => s + Number(p.costUnit || 0) * Number(o.qty || 0), 0);
   const qty = pOrds.reduce((s, o) => s + Number(o.qty || 0), 0);
@@ -2236,7 +2241,7 @@ const pOrds = valid.filter(o => Number(o.productId || o.recipeId) === Number(p.i
     const rows = [];
     valid.forEach(o => {
       const client = conf.clients.find(c => c.id === o.clientId);
-      const prod   = ingredients.find(p => p.id === o.recipeId);
+      const prod   = ingredients.find(p => p.id === o.productId);
       const cost   = prod ? prod.costUnit * o.qty : 0;
       rows.push({ id: `in-${o.id}`, date: o.deliveryDate || o.createdAt, desc: `Venda — ${prod?.name || "Produto"}`, client: client?.name || "—", type: "in", value: o.price, status: o.status });
       if (cost > 0) rows.push({ id: `out-${o.id}`, date: o.deliveryDate || o.createdAt, desc: `Custo — ${prod?.name || ""}`, client: "—", type: "out", value: cost, status: o.status });
@@ -2446,9 +2451,9 @@ function ConfReports() {
 
   const topProducts = useMemo(() => conf.ingredients.map(p => ({
     ...p,
-    qty:     valid.filter(o => o.recipeId === p.id).reduce((s, o) => s + o.qty, 0),
-    revenue: valid.filter(o => o.recipeId === p.id).reduce((s, o) => s + o.price, 0),
-    cost:    valid.filter(o => o.recipeId === p.id).reduce((s, o) => s + p.costUnit * o.qty, 0),
+    qty:     valid.filter(o => o.productId === p.id).reduce((s, o) => s + o.qty, 0),
+    revenue: valid.filter(o => o.productId === p.id).reduce((s, o) => s + o.price, 0),
+    cost:    valid.filter(o => o.productId === p.id).reduce((s, o) => s + p.costUnit * o.qty, 0),
   })).filter(p => p.qty > 0 || p.revenue > 0).sort((a, b) => b.qty - a.qty),
   [valid, conf.ingredients]);
 
@@ -2470,7 +2475,7 @@ function ConfReports() {
     const s = search.toLowerCase();
     return valid.filter(o => {
       const client = conf.clients.find(c => c.id === o.clientId);
-      const prod = conf.ingredients.find(p => p.id === o.recipeId);
+      const prod = conf.ingredients.find(p => p.id === o.productId);
       return client?.name?.toLowerCase().includes(s) || prod?.name?.toLowerCase().includes(s) || String(o.id).includes(s);
     });
   }, [valid, search, conf.clients, conf.ingredients]);
@@ -2627,7 +2632,7 @@ function ConfReports() {
               <thead><tr><th>#</th><th>Cliente</th><th>Produto</th><th>Qtd</th><th>Data entrega</th><th>Valor</th><th>Lucro est.</th><th>Status</th></tr></thead>
               <tbody>{filteredOrders.map(ord => {
                 const client = conf.clients.find(c => c.id === ord.clientId);
-                const prod = conf.ingredients.find(p => p.id === ord.recipeId);
+                const prod = conf.ingredients.find(p => p.id === ord.productId);
                 const cost   = prod ? prod.costUnit * ord.qty : 0;
                 const st     = ORDER_STATUS[ord.status];
                 return (
@@ -2707,7 +2712,7 @@ function ConfSettings({ onLogout }) {
   };
   return (
     <div>
-      <div className="page-header"><h1 className="page-title">Configurações</h1><p className="page-desc">Personalize as informações do seu negócio</p></div>
+      <div className="page-header"><h1 className="page-title">Configurações</h1><p className="page-desc">Personalize as informações da sua e</p></div>
       <div className="g g2">
         <div className="card">
           <div className="card-head"><span className="card-title">Dados do Negócio</span></div>
